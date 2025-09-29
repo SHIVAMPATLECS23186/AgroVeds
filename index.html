@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agroveds - Medical Terminology System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #00796b;
+      --primary-dark: #004d40;
+      --secondary: #28a745;
+      --light-bg: #f4f9f9;
+      --white: #ffffff;
+      --text: #333333;
+      --text-light: #666666;
+      --shadow: 0 4px 15px rgba(0,0,0,0.1);
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--light-bg);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* Welcome Screen */
+    .welcome-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--primary);
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      text-align: center;
+      padding: 2rem;
+    }
+    
+    .welcome-screen h1 {
+      font-size: 3rem;
+      margin-bottom: 2rem;
+    }
+    
+    .welcome-screen p {
+      font-size: 1.2rem;
+      max-width: 800px;
+      margin-bottom: 2rem;
+    }
+    
+    .instructions {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 1.5rem;
+      max-width: 800px;
+      margin-bottom: 2rem;
+    }
+    
+    .instructions h3 {
+      margin-bottom: 1rem;
+      color: #e0f2f1;
+    }
+    
+    .instructions ul {
+      text-align: left;
+      margin-left: 1.5rem;
+    }
+    
+    .instructions li {
+      margin-bottom: 0.5rem;
+    }
+    
+    .start-btn {
+      background: var(--secondary);
+      color: var(--white);
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 600;
+    }
+    
+    .start-btn:hover {
+      background: #218838;
+      transform: translateY(-2px);
+    }
+
+    /* Header */
+    header {
+      background: var(--primary);
+      color: var(--white);
+      width: 100%;
+      text-align: center;
+      padding: 1.2rem;
+      font-size: 1.8rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    /* Main container */
+    .main-container {
+      width: 100%;
+      max-width: 1200px;
+      padding: 1.5rem;
+      flex: 1;
+    }
+
+    /* Progress bar container */
+    .progress-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      width: 100%;
+      margin: 2rem 0;
+      padding: 0 1rem;
+    }
+
+    /* Progress line */
+    .progress-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: #d3d3d3;
+      z-index: 1;
+    }
+
+    /* Progress fill with animation */
+    .progress-fill {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      height: 4px;
+      width: 0;
+      background: var(--secondary);
+      box-shadow: 0 0 15px rgba(40, 167, 69, 0.4);
+      transition: width 0.8s ease;
+      z-index: 2;
+    }
+
+    /* Progress circles */
+    .progress-step {
+      width: 40px;
+      height: 40px;
+      background: #d3d3d3;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      color: #555;
+      transition: var(--transition);
+      position: relative;
+      z-index: 3;
+      font-size: 1rem;
+    }
+
+    /* Labels below circles */
+    .progress-step::after {
+      content: attr(data-label);
+      position: absolute;
+      top: 45px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      color: var(--text-light);
+      opacity: 0.8;
+      white-space: nowrap;
+      width: max-content;
+    }
+
+    /* Pulse animation */
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(40, 167, 69, 0.7);
+      }
+      50% {
+        transform: scale(1.15);
+        box-shadow: 0 0 15px rgba(40, 167, 69, 0.6);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(40, 167, 69, 0.7);
+      }
+    }
+
+    /* Active step */
+    .progress-step.active {
+      background: var(--secondary);
+      color: var(--white);
+      animation: pulse 1s ease;
+    }
+
+    /* Main content */
+    .content {
+      width: 100%;
+      background: var(--white);
+      padding: 1.8rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+    }
+
+    .step {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .step.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+    }
+    
+    .example-text {
+      background: #f8f9fa;
+      padding: 0.8rem;
+      border-radius: 6px;
+      margin-bottom: 1.2rem;
+      font-size: 0.9rem;
+      border-left: 3px solid var(--primary);
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 0.9rem;
+      margin-bottom: 1.2rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 121, 107, 0.2);
+    }
+
+    button {
+      background: var(--primary);
+      color: var(--white);
+      border: none;
+      padding: 0.9rem 1.8rem;
+      margin-top: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 1rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    button i {
+      margin-left: 0.5rem;
+    }
+
+    .symptoms {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 0.8rem;
+      margin: 1.5rem 0;
+    }
+    
+    .symptoms label {
+      display: flex;
+      align-items: center;
+      padding: 0.8rem;
+      background: #f9f9f9;
+      border-radius: 6px;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    
+    .symptoms label:hover {
+      background: #edf7ed;
+      transform: translateY(-2px);
+    }
+    
+    .symptoms input[type="checkbox"] {
+      width: auto;
+      margin: 0 0.8rem 0 0;
+      transform: scale(1.2);
+    }
+
+    .result-box {
+      background: #e8f5e9;
+      border-left: 5px solid var(--secondary);
+      padding: 1.2rem;
+      margin: 1.2rem 0;
+      border-radius: 8px;
+      animation: slideIn 0.5s ease;
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .result-box b {
+      color: var(--primary);
+    }
+
+    /* Navigation buttons */
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2rem;
+    }
+    
+    .btn-prev {
+      background: #6c757d;
+    }
+    
+    .btn-prev:hover {
+      background: #5a6268;
+    }
+    
+    .btn-generate {
+      background: #ff6b6b;
+    }
+    
+    .btn-generate:hover {
+      background: #e05555;
+    }
+
+    /* EMR Report */
+    .emr-report {
+      background: white;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      padding: 2rem;
+      margin-top: 2rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .emr-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 1rem;
+    }
+    
+    .emr-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .emr-section {
+      margin-bottom: 1.5rem;
+    }
+    
+    .emr-section h4 {
+      color: var(--primary);
+      margin-bottom: 0.8rem;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.5rem;
+    }
+    
+    .emr-codes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    
+    .code-box {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 6px;
+      border-left: 3px solid var(--primary);
+    }
+    
+    .submission-success {
+      text-align: center;
+      padding: 2rem;
+      background: #e8f5e9;
+      border-radius: 8px;
+      margin-top: 2rem;
+    }
+    
+    .submission-success i {
+      font-size: 3rem;
+      color: var(--secondary);
+      margin-bottom: 1rem;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .welcome-screen h1 {
+        font-size: 2rem;
+      }
+      
+      header {
+        font-size: 1.5rem;
+        padding: 1rem;
+      }
+      
+      .main-container {
+        padding: 1rem;
+      }
+      
+      .progress-container {
+        margin: 1.5rem 0;
+      }
+      
+      .progress-step {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+      }
+      
+      .progress-step::after {
+        font-size: 0.6rem;
+        top: 40px;
+      }
+      
+      .content {
+        padding: 1.2rem;
+      }
+      
+      h2 {
+        font-size: 1.3rem;
+      }
+      
+      .symptoms {
+        grid-template-columns: 1fr;
+      }
+      
+      .emr-details, .emr-codes {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .progress-step::after {
+        display: none;
+      }
+      
+      .progress-container {
+        padding: 0;
+      }
+      
+      button {
+        width: 100%;
+        margin-top: 0.8rem;
+      }
+      
+      .nav-buttons {
+        flex-direction: column;
+      }
+    }
+
+    /* Footer */
+    footer {
+      background: var(--primary);
+      color: var(--white);
+      text-align: center;
+      padding: 1rem;
+      width: 100%;
+      margin-top: auto;
+      font-size: 0.9rem;
+    }
+    
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Welcome Screen -->
+  <div class="welcome-screen" id="welcomeScreen">
+    <h1><i class="fas fa-heartbeat"></i> Agroveds Medical System</h1>
+    <p>Welcome to the Medical Terminology Mapping System. This tool helps bridge traditional Ayurvedic medicine with modern healthcare systems.</p>
+    
+    <div class="instructions">
+      <h3>Instructions for Use:</h3>
+      <ul>
+        <li>Follow the step-by-step process to map medical conditions</li>
+        <li>Enter information exactly as shown in the examples</li>
+        <li>Select symptoms to refine diagnosis accuracy</li>
+        <li>Review results and generate an EMR report</li>
+        <li>Submit the report to government health records</li>
+      </ul>
+    </div>
+    
+    <button class="start-btn" onclick="startApplication()">
+      Start Using System <i class="fas fa-arrow-right"></i>
+    </button>
+  </div>
+
+  <!-- Main Application (initially hidden) -->
+  <div class="hidden" id="mainApp">
+    <header>
+      <i class="fas fa-heartbeat"></i> Agroveds Medical System
+    </header>
+
+    <div class="main-container">
+      <!-- Progress Tracker -->
+      <div class="progress-container">
+        <div class="progress-line"></div>
+        <div class="progress-fill"></div>
+        <div class="progress-step" data-label="Patient ID">1</div>
+        <div class="progress-step" data-label="System">2</div>
+        <div class="progress-step" data-label="Disease">3</div>
+        <div class="progress-step" data-label="Symptoms">4</div>
+        <div class="progress-step" data-label="Results">5</div>
+        <div class="progress-step" data-label="EMR Report">6</div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="content">
+        <!-- Step 1 -->
+        <div id="step1" class="step active">
+          <h2>Enter Patient ID</h2>
+          <div class="example-text">
+            <strong>Example:</strong> Enter a 12-digit Aadhaar number like <em>1234 5678 9012</em>
+          </div>
+          <input type="text" id="patientId" placeholder="Enter 12-digit Aadhaar ID">
+          <button onclick="nextStep()">Verify <i class="fas fa-check"></i></button>
+        </div>
+
+        <!-- Step 2 -->
+        <div id="step2" class="step">
+          <h2>Select Input System</h2>
+          <div class="example-text">
+            <strong>Example:</strong> Choose how you want to input the medical condition - by name or code
+          </div>
+          <select id="system">
+            <option value="">-- Select Input Type --</option>
+            <option value="namaste-name">NAMASTE Disease Name</option>
+            <option value="namaste-code">NAMASTE Code</option>
+            <option value="icd-name">WHO ICD Disease Name</option>
+            <option value="icd-code">WHO ICD Code</option>
+          </select>
+          <div class="nav-buttons">
+            <button class="btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back</button>
+            <button onclick="nextStep()">Continue <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div id="step3" class="step">
+          <h2>Enter Disease Information</h2>
+          <div id="diseaseExample" class="example-text">
+            <!-- Dynamic example text will be inserted here based on system selection -->
+          </div>
+          <input type="text" id="diseaseInput" placeholder="Enter disease information">
+          <div class="nav-buttons">
+            <button class="btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back</button>
+            <button onclick="nextStep()">Search <i class="fas fa-search"></i></button>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div id="step4" class="step">
+          <h2>Select Symptoms</h2>
+          <div class="example-text">
+            <strong>Example:</strong> Select all symptoms that apply to the patient to refine diagnosis accuracy
+          </div>
+          <p>Select all symptoms that apply:</p>
+          <div class="symptoms">
+            <label><input type="checkbox" value="Joint Pain"> Joint Pain</label>
+            <label><input type="checkbox" value="Morning Stiffness"> Morning Stiffness</label>
+            <label><input type="checkbox" value="Swelling"> Swelling</label>
+            <label><input type="checkbox" value="Fatigue"> Fatigue</label>
+            <label><input type="checkbox" value="Redness"> Redness</label>
+            <label><input type="checkbox" value="Reduced Motion"> Reduced Motion</label>
+            <label><input type="checkbox" value="Deformity"> Deformity</label>
+            <label><input type="checkbox" value="Fever"> Fever</label>
+            <label><input type="checkbox" value="Weight Loss"> Weight Loss</label>
+          </div>
+          <div class="nav-buttons">
+            <button class="btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back</button>
+            <button onclick="showResults()">Submit Symptoms <i class="fas fa-paper-plane"></i></button>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div id="step5" class="step">
+          <h2>Possible Matches</h2>
+          <div id="results"></div>
+          <div class="nav-buttons">
+            <button class="btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back</button>
+            <button class="btn-generate" onclick="generateEMR()">Generate EMR Report <i class="fas fa-file-medical"></i></button>
+          </div>
+        </div>
+
+        <!-- Step 6 - EMR Report -->
+        <div id="step6" class="step">
+          <h2>EMR Report</h2>
+          <div class="emr-report" id="emrReport">
+            <!-- EMR report content will be generated here -->
+          </div>
+          <div class="nav-buttons">
+            <button class="btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back</button>
+            <button class="btn-generate" onclick="submitEMR()">Submit to Government Records <i class="fas fa-share-square"></i></button>
+          </div>
+        </div>
+        
+        <!-- Submission Success -->
+        <div id="submissionSuccess" class="submission-success hidden">
+          <i class="fas fa-check-circle"></i>
+          <h3>Report Successfully Submitted!</h3>
+          <p>This EMR report has been sent to government health records for analysis and policy planning.</p>
+          <button onclick="resetFlow()">Create New Report <i class="fas fa-redo"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Agroveds Prototype &copy; 2023 | Integrating Ayurveda with Modern Medicine</p>
+    </footer>
+  </div>
+
+  <script>
+    let currentStep = 1;
+    let patientData = {
+      id: '',
+      name: '',
+      system: '',
+      diseaseInput: '',
+      symptoms: [],
+      diagnosis: {}
+    };
+
+    // Start the application
+    function startApplication() {
+      document.getElementById('welcomeScreen').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+    }
+
+    function activateStep(step) {
+      const steps = document.querySelectorAll(".progress-step");
+      const progressFill = document.querySelector(".progress-fill");
+      steps.forEach((el, index) => {
+        if (index < step) {
+          el.classList.add("active");
+          // Restart animation
+          el.style.animation = "none";
+          el.offsetHeight;
+          el.style.animation = null;
+        } else {
+          el.classList.remove("active");
+        }
+      });
+      progressFill.style.width = ((step - 1) / (steps.length - 1)) * 100 + "%";
+    }
+
+    function showStep(stepNumber) {
+      document.querySelectorAll('.step').forEach(step => {
+        step.classList.remove('active');
+      });
+      document.getElementById(`step${stepNumber}`).classList.add('active');
+      
+      // Update disease example based on system selection
+      if (stepNumber === 3) {
+        updateDiseaseExample();
+      }
+      
+      activateStep(stepNumber);
+    }
+
+    function nextStep() {
+      if (currentStep < 6) {
+        currentStep++;
+        showStep(currentStep);
+      }
+    }
+
+    function prevStep() {
+      if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+      }
+    }
+
+    function resetFlow() {
+      currentStep = 1;
+      showStep(currentStep);
+      document.getElementById('results').innerHTML = '';
+      document.getElementById('diseaseInput').value = '';
+      document.getElementById('patientId').value = '';
+      document.getElementById('system').selectedIndex = 0;
+      document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+      document.getElementById('submissionSuccess').classList.add('hidden');
+      
+      // Reset patient data
+      patientData = {
+        id: '',
+        name: '',
+        system: '',
+        diseaseInput: '',
+        symptoms: [],
+        diagnosis: {}
+      };
+    }
+
+    function updateDiseaseExample() {
+      const system = document.getElementById('system').value;
+      const exampleDiv = document.getElementById('diseaseExample');
+      
+      let exampleText = '';
+      switch(system) {
+        case 'namaste-name':
+          exampleText = '<strong>Example:</strong> Enter a NAMASTE disease name like <em>Amavata</em>';
+          break;
+        case 'namaste-code':
+          exampleText = '<strong>Example:</strong> Enter a NAMASTE code like <em>NAMASTE-AMA-001</em>';
+          break;
+        case 'icd-name':
+          exampleText = '<strong>Example:</strong> Enter an ICD disease name like <em>Rheumatoid Arthritis</em>';
+          break;
+        case 'icd-code':
+          exampleText = '<strong>Example:</strong> Enter an ICD code like <em>M06.9</em> (ICD-10) or <em>FA20</em> (ICD-11)';
+          break;
+        default:
+          exampleText = '<strong>Example:</strong> Select a system first to see examples';
+      }
+      
+      exampleDiv.innerHTML = exampleText;
+    }
+
+    function showResults() {
+      // Store patient data
+      patientData.id = document.getElementById('patientId').value;
+      patientData.system = document.getElementById('system').value;
+      patientData.diseaseInput = document.getElementById('diseaseInput').value;
+      
+      // Get selected symptoms
+      patientData.symptoms = [];
+      document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+        patientData.symptoms.push(checkbox.value);
+      });
+      
+      // Generate patient name based on ID (for demo purposes)
+      patientData.name = generatePatientName(patientData.id);
+      
+      currentStep = 5;
+      showStep(currentStep);
+
+      // Demo dataset (Arthritis Mapping)
+      const resultsDiv = document.getElementById("results");
+      const symptomCount = patientData.symptoms.length;
+
+      resultsDiv.innerHTML = `
+        <div class="result-box">
+          <b>Correct Match:</b><br>
+          Disease: Rheumatoid Arthritis (Amavata)<br>
+          NAMASTE Code: NAMASTE-AMA-001<br>
+          ICD-10: M06.9 | ICD-11: FA20<br>
+          Symptoms Matched: ${symptomCount}/${symptomCount} ✅
+        </div>
+
+        <div class="result-box">
+          <b>Possible Match:</b><br>
+          Disease: Osteoarthritis (Sandhigata Vata)<br>
+          NAMASTE Code: NAMASTE-SAN-002<br>
+          ICD-10: M19.90 | ICD-11: FA01<br>
+          Symptoms Matched: ${Math.max(symptomCount - 2, 1)}/${symptomCount}
+        </div>
+
+        <div class="result-box">
+          <b>Possible Match:</b><br>
+          Disease: Other Arthritis<br>
+          NAMASTE Code: NAMASTE-ART-003<br>
+          ICD-10: M13.80 | ICD-11: FA09<br>
+          Symptoms Matched: ${Math.max(symptomCount - 4, 1)}/${symptomCount}
+        </div>
+        
+        <p><i>Note: These results are based on symptom matching between Ayurvedic and WHO ICD classifications.</i></p>
+      `;
+      
+      // Store diagnosis for EMR report
+      patientData.diagnosis = {
+        primary: {
+          name: "Rheumatoid Arthritis (Amavata)",
+          namasteCode: "NAMASTE-AMA-001",
+          icd10: "M06.9",
+          icd11: "FA20"
+        },
+        alternatives: [
+          {
+            name: "Osteoarthritis (Sandhigata Vata)",
+            namasteCode: "NAMASTE-SAN-002",
+            icd10: "M19.90",
+            icd11: "FA01"
+          },
+          {
+            name: "Other Arthritis",
+            namasteCode: "NAMASTE-ART-003",
+            icd10: "M13.80",
+            icd11: "FA09"
+          }
+        ]
+      };
+    }
+
+    function generatePatientName(id) {
+      // Simple function to generate a patient name based on ID for demo
+      const names = ["Narendra Modi", "Rahul Sharma", "Priya Patel", "Amit Kumar", "Sunita Singh"];
+      const index = id ? parseInt(id) % names.length : 0;
+      return names[index];
+    }
+
+    function generateEMR() {
+      currentStep = 6;
+      showStep(currentStep);
+      
+      const emrReport = document.getElementById('emrReport');
+      const today = new Date().toLocaleDateString();
+      
+      emrReport.innerHTML = `
+        <div class="emr-header">
+          <h3>ELECTRONIC MEDICAL RECORD</h3>
+          <p>Agroveds Medical System | Generated on: ${today}</p>
+        </div>
+        
+        <div class="emr-details">
+          <div class="emr-section">
+            <h4>PATIENT INFORMATION</h4>
+            <p><strong>Name:</strong> ${patientData.name}</p>
+            <p><strong>Patient ID (Aadhaar):</strong> ${patientData.id}</p>
+            <p><strong>Date of Visit:</strong> ${today}</p>
+          </div>
+          
+          <div class="emr-section">
+            <h4>CLINIC INFORMATION</h4>
+            <p><strong>Doctor:</strong> Dr. Sharma</p>
+            <p><strong>Clinic:</strong> Ayurveda Wellness Center</p>
+            <p><strong>Location:</strong> New Delhi, India</p>
+          </div>
+        </div>
+        
+        <div class="emr-section">
+          <h4>PRIMARY DIAGNOSIS</h4>
+          <p><strong>Condition:</strong> ${patientData.diagnosis.primary.name}</p>
+          
+          <div class="emr-codes">
+            <div class="code-box">
+              <strong>NAMASTE Code:</strong><br>
+              ${patientData.diagnosis.primary.namasteCode}
+            </div>
+            <div class="code-box">
+              <strong>ICD Codes:</strong><br>
+              ICD-10: ${patientData.diagnosis.primary.icd10}<br>
+              ICD-11: ${patientData.diagnosis.primary.icd11}
+            </div>
+          </div>
+        </div>
+        
+        <div class="emr-section">
+          <h4>SYMPTOMS REPORTED</h4>
+          <p>${patientData.symptoms.join(', ')}</p>
+        </div>
+        
+        <div class="emr-section">
+          <h4>ALTERNATIVE DIAGNOSES</h4>
+          ${patientData.diagnosis.alternatives.map(alt => `
+            <p><strong>${alt.name}:</strong> NAMASTE: ${alt.namasteCode} | ICD-10: ${alt.icd10} | ICD-11: ${alt.icd11}</p>
+          `).join('')}
+        </div>
+        
+        <div class="emr-section">
+          <h4>NOTES</h4>
+          <p>This report demonstrates the integration of traditional Ayurvedic medicine with modern healthcare systems through standardized coding.</p>
+        </div>
+      `;
+    }
+
+    function submitEMR() {
+      document.getElementById('submissionSuccess').classList.remove('hidden');
+      
+      // Scroll to success message
+      document.getElementById('submissionSuccess').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Initialize first step
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add event listener to system select to update examples
+      document.getElementById('system').addEventListener('change', updateDiseaseExample);
+    });
+  </script>
+</body>
+</html>
